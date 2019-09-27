@@ -16,9 +16,18 @@
   }
 
   function constructFrame(trace, frame) {
-    const { name, line, column, resourceId } = frame;
+    let { name, line, column, resourceId } = frame;
+    /**
+     * anonymous functions
+     */
+    if (!name) {
+      name = "anonymous";
+    }
+    /**
+     * Native code
+     */
     if (!line || !column) {
-      return name;
+      return `at ${name} (native code)`;
     }
     const resourceName = getResource(trace, resourceId);
     const message = `at ${name} (${resourceName}:${line}:${column})`;
@@ -34,13 +43,14 @@
   }
 
   function buildFrames(trace, stack, frame = "") {
-    const { frameId, parentId } = stack;
+    const { parentId } = stack;
 
     if (parentId != null) {
       frame += buildCodeFrame(trace, stack);
       const nextStack = getCurrentStack(trace, parentId);
-      if (frame.split("/n").length === 1) {
-        frame += "\n" + "   ";
+      frame += "\n";
+      if (frame.split("\n").length !== 1) {
+        frame += "   ";
       }
       return buildFrames(trace, nextStack, frame);
     }
@@ -61,7 +71,7 @@
       }
       const time = Math.round(sample.timestamp);
       const frame = buildFrames(trace, stack);
-      console.info(`${time} ms`, frame);
+      console.log(`Time ${time}ms`, frame);
     }
   }
 })();
