@@ -13,3 +13,9 @@ The API is experimental, Its available only on Chrome behind a flag `--enable-bl
 2. Paste the code from `profile.js` inside the `<script>` tags.
 
 3. Run the web app on Chrome 78 and check the devtools console for the trace logs.
+
+### How it runs
+
+1. The profiler is started as soon as the script is run and starts capturing JS stack traces every 1 ms based on the samplingInterval.
+
+2. The profiler is stopped on the page load and the traces are printed on the console.
