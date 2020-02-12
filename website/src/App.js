@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import logo from "./logo.svg";
-import FlameGraph from "./Flamegraph";
-import "./App.css";
+import FlameGraph from "./AutoSizedFlameGraph";
 
 var noOfTasks = 0;
 function makeSlowTask(ms) {
@@ -25,9 +23,7 @@ function makeSlowTask(ms) {
 
 function App() {
   const [flameGraph, setFlameGraph] = useState(false);
-  const Loading = () => (
-    <div>Flame graph data is getting generated...</div>
-  );
+  const Loading = () => <div>Flame graph data is getting generated...</div>;
 
   setTimeout(() => {
     setFlameGraph(true);

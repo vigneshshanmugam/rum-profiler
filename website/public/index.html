@@ -52,7 +52,6 @@
               end: data.end
             });
           });
-          console.log(PROFILED_DATA);
           window.PROFILED_DATA = PROFILED_DATA;
         }
 
@@ -130,7 +129,6 @@
           /**
            * Merge frames on all stacks together
            */
-          console.log(culprits);
           for (const culprit of culprits) {
             const { selfTime, frames } = culprit;
             if (frames.length === 0) {
