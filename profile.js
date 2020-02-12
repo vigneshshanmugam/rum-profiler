@@ -116,35 +116,46 @@
     /**
      * Merge frames on all stacks together
      */
+    const updateMap = (key, selfTime) => {
+      if (!map.has(key)) {
+        map.set(key, {
+          children: [],
+          selfTime: 0,
+          seen: false
+        });
+      }
+      const value = map.get(key);
+      if (currLevel) {
+        if (value.selfTime + selfTime <= currLevel.selfTime) {
+          value.selfTime += selfTime;
+        }
+        if (currLevel.children.indexOf(key) === -1) {
+          currLevel.children.push(key);
+        }
+      } else {
+        value.selfTime += selfTime;
+      }
+      currLevel = value;
+    };
+
     for (const culprit of culprits) {
       const { selfTime, frames } = culprit;
-      if (frames.length === 0) {
+
+      if (frames.length > 0) {
+        currLevel = null;
+      } else {
+        if (currLevel) {
+          const key = `stack-unavailable$#${data.start}`;
+          updateMap(key, selfTime);
+        }
         continue;
       }
+
       for (let depth = 0; depth < frames.length; depth++) {
         const frame = frames[depth];
         const key = `${frame}$#${depth}`;
-        if (!map.has(key)) {
-          map.set(key, {
-            children: [],
-            selfTime: 0,
-            seen: false
-          });
-        }
-        const value = map.get(key);
-        if (currLevel) {
-          if (value.selfTime + selfTime <= currLevel.selfTime) {
-            value.selfTime += selfTime;
-          }
-          if (currLevel.children.indexOf(key) === -1) {
-            currLevel.children.push(key);
-          }
-        } else {
-          value.selfTime += selfTime;
-        }
-        currLevel = value;
+        updateMap(key, selfTime);
       }
-      currLevel = null;
     }
 
     const bfs = (currFrame, currentValue, rootNode) => {
