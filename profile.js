@@ -29,18 +29,17 @@
     po.disconnect();
     const trace = await profiler.stop();
     const traceData = getTraceData(trace);
-    const flamegraphs = [];
-    const longtaskTimings = [];
+    const PROFILED_DATA = [];
     Object.keys(traceData).forEach(key => {
       const data = traceData[key];
       const flamegraph = getFlameGraphData(data);
-      flamegraphs.push(flamegraph);
-      longtaskTimings.push({
+      PROFILED_DATA.push({
+        data: flamegraph,
         start: data.start,
-        end: data.end,
-        duration: data.duration
+        end: data.end
       });
     });
+    window.PROFILED_DATA = PROFILED_DATA;
   }
 
   setTimeout(stop, 3000);
