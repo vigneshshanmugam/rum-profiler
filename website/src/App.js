@@ -27,7 +27,7 @@ function App() {
 
   setTimeout(() => {
     setFlameGraph(true);
-  }, 4000);
+  }, 5000);
 
   return <div className="App">{flameGraph ? <FlameGraph /> : <Loading />}</div>;
 }

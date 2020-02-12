@@ -11,236 +11,149 @@
     <title>RUM Sampling Profiler in JavaScript</title>
     <script>
       (async () => {
-        let i = 1;
-        let longtaskSpans = [];
-        const po = new PerformanceObserver(list => {
-          const entries = list.getEntries();
-          for (const entry of entries) {
-            longtaskSpans.push({
-              id: `${i}`,
-              name: entry.name,
-              start: Math.round(entry.startTime),
-              end: Math.round(entry.startTime + entry.duration),
-              duration: Math.round(entry.duration)
-            });
-            i++;
-          }
+        let t = 1,
+          n = [];
+        const e = new PerformanceObserver(e => {
+          const s = e.getEntries();
+          for (const e of s)
+            n.push({
+              id: `${t}`,
+              name: e.name,
+              start: Math.round(e.startTime),
+              end: Math.round(e.startTime + e.duration),
+              duration: Math.round(e.duration)
+            }),
+              t++;
         });
-
-        po.observe({
-          type: "longtask"
-        });
-
-        const profiler = await performance.profile({
+        e.observe({ type: "longtask" });
+        const s = await performance.profile({
           categories: ["js"],
           sampleInterval: 0.1,
           sampleBufferSize: Number.MAX_SAFE_INTEGER
         });
-
-        async function stop() {
-          po.disconnect();
-          const trace = await profiler.stop();
-          const traceData = getTraceData(trace);
-          const PROFILED_DATA = [];
-          const longtaskTimings = [];
-          Object.keys(traceData).forEach(key => {
-            const data = traceData[key];
-            const flamegraph = getFlameGraphData(data);
-            PROFILED_DATA.push({
-              data: flamegraph,
-              start: data.start,
-              end: data.end
-            });
-          });
-          window.PROFILED_DATA = PROFILED_DATA;
+        function r(t, n) {
+          return (function(t, n) {
+            let { name: e, line: s, column: r, resourceId: o } = n;
+            if (!e && !s && !r) return "unknown";
+            e || (e = "anonymous");
+            if (!s || !r) return `${e} (native code)`;
+            const c = (function(t, n) {
+              return t.resources[n];
+            })(t, o);
+            return `${e} (${c}:${s}:${r})`;
+          })(
+            t,
+            (function(t, n) {
+              return t.frames[n];
+            })(t, n.frameId)
+          );
         }
-
-        setTimeout(stop, 3000);
-
-        function buildCodeFrame(trace, stack) {
-          const frame = getCurrentFrame(trace, stack.frameId);
-          return constructFrame(trace, frame);
+        function o(t, n) {
+          return t.stacks[n];
         }
-
-        function constructFrame(trace, frame) {
-          let { name, line, column, resourceId } = frame;
-          if (!name && !line && !column) {
-            return `unknown`;
+        function c(t, n, e = []) {
+          if (!n) return e;
+          const { parentId: s } = n;
+          if (null != s) {
+            return e.unshift(r(t, n)), c(t, o(t, s), e);
           }
-          /**
-           * anonymous functions
-           */
-          if (!name) {
-            name = "anonymous";
-          }
-          /**
-           * Native code
-           */
-          if (!line || !column) {
-            return `${name} (native code)`;
-          }
-          const resourceName = getResource(trace, resourceId);
-          const message = `${name} (${resourceName}:${line}:${column})`;
-          return message;
+          return e.unshift(r(t, n)), e;
         }
-
-        function getCurrentStack(trace, stackId) {
-          return trace.stacks[stackId];
+        function i(t, n) {
+          return { name: t.split("$#")[0], value: n, children: [] };
         }
-
-        function getCurrentFrame(trace, frameId) {
-          return trace.frames[frameId];
-        }
-
-        function buildFrames(trace, stack, frames = []) {
-          if (!stack) {
-            return frames;
-          }
-          const { parentId } = stack;
-
-          if (parentId != null) {
-            frames.unshift(buildCodeFrame(trace, stack));
-            const nextStack = getCurrentStack(trace, parentId);
-            return buildFrames(trace, nextStack, frames);
-          }
-
-          frames.unshift(buildCodeFrame(trace, stack));
-          return frames;
-        }
-
-        function getResource(trace, resource) {
-          return trace.resources[resource];
-        }
-
-        function createNode(name, value) {
-          const actualName = name.split("$#")[0];
-          return {
-            name: actualName,
-            value,
-            children: []
-          };
-        }
-
-        function getFlameGraphData(data) {
-          const map = new Map();
-          const { culprits, name, duration } = data;
-          const rootNode = createNode(`Longtask (${name})`, duration);
-          let currLevel = null;
-          /**
-           * Merge frames on all stacks together
-           */
-          for (const culprit of culprits) {
-            const { selfTime, frames } = culprit;
-            if (frames.length === 0) {
-              continue;
-            }
-            for (let depth = 0; depth < frames.length; depth++) {
-              const frame = frames[depth];
-              const key = `${frame}$#${depth}`;
-              if (!map.has(key)) {
-                map.set(key, {
-                  children: [],
-                  selfTime: 0,
-                  seen: false
-                });
-              }
-              const value = map.get(key);
-              if (currLevel) {
-                if (value.selfTime + selfTime <= currLevel.selfTime) {
-                  value.selfTime += selfTime;
+        setTimeout(async function() {
+          e.disconnect();
+          const t = (function(t) {
+              const e = {};
+              for (const s of t.samples) {
+                const r = Math.round(s.timestamp);
+                for (const c of n) {
+                  const { start: n, name: i, id: a, end: u, duration: f } = c;
+                  if (
+                    (e[a] ||
+                      (e[a] = {
+                        name: i,
+                        start: n,
+                        end: u,
+                        duration: f,
+                        culprits: []
+                      }),
+                    r >= n && r <= u)
+                  ) {
+                    const n = o(t, s.stackId);
+                    e[a].culprits.push({
+                      time: r,
+                      stackId: s.stackId,
+                      stack: n
+                    });
+                  }
                 }
-                if (currLevel.children.indexOf(key) === -1) {
-                  currLevel.children.push(key);
+              }
+              return (
+                (function(t, n) {
+                  Object.keys(t).forEach(e => {
+                    const { culprits: s, start: r, end: o } = t[e],
+                      i = [];
+                    let a = r;
+                    for (let t = 0, e = 1; e < s.length + 1; t++, e++) {
+                      let r = s[t],
+                        u = s[e];
+                      for (; u && u.stackId === r.stackId; )
+                        e++, (r = s[++t]), (u = s[e]);
+                      const f = e === s.length,
+                        l = f ? r.time - a + (o - r.time) : r.time - a;
+                      i.push({ selfTime: l, frames: c(n, r.stack) }),
+                        (a = r.time);
+                    }
+                    t[e].culprits = i;
+                  });
+                })(e, t),
+                e
+              );
+            })(await s.stop()),
+            r = [];
+          Object.keys(t).forEach(n => {
+            const e = t[n],
+              s = (function(t) {
+                const n = new Map(),
+                  { culprits: e, name: s, duration: r } = t,
+                  o = i(`Longtask (${s})`, r);
+                let c = null;
+                for (const t of e) {
+                  const { selfTime: e, frames: s } = t;
+                  if (0 !== s.length) {
+                    for (let t = 0; t < s.length; t++) {
+                      const r = s[t],
+                        o = `${r}$#${t}`;
+                      n.has(o) ||
+                        n.set(o, { children: [], selfTime: 0, seen: !1 });
+                      const i = n.get(o);
+                      c
+                        ? (i.selfTime + e <= c.selfTime && (i.selfTime += e),
+                          -1 === c.children.indexOf(o) && c.children.push(o))
+                        : (i.selfTime += e),
+                        (c = i);
+                    }
+                    c = null;
+                  }
                 }
-              } else {
-                value.selfTime += selfTime;
-              }
-              currLevel = value;
-            }
-            currLevel = null;
-          }
-
-          const bfs = (currFrame, currentValue, rootNode) => {
-            const node = createNode(currFrame, currentValue.selfTime);
-            rootNode.children.push(node);
-            for (const frame of currentValue.children) {
-              const nodeValue = map.get(frame);
-              bfs(frame, nodeValue, node);
-            }
-            currentValue.seen = true;
-          };
-
-          /**
-           * Combine the frames in to flamegraph chart data
-           */
-          for (const [key, value] of map.entries()) {
-            if (value.seen) {
-              continue;
-            }
-            bfs(key, value, rootNode);
-          }
-          return rootNode;
-        }
-
-        function mergeStackAndCalculateSelfTime(data, trace) {
-          Object.keys(data).forEach(key => {
-            const { culprits, start, end } = data[key];
-            const merged = [];
-            let currentStart = start;
-            for (let i = 0, j = 1; j < culprits.length + 1; i++, j++) {
-              let prev = culprits[i];
-              let current = culprits[j];
-              while (current && current.stackId === prev.stackId) {
-                j++;
-                i++;
-                prev = culprits[i];
-                current = culprits[j];
-              }
-              const isLast = j === culprits.length;
-              const selfTime = isLast
-                ? prev.time - currentStart + (end - prev.time)
-                : prev.time - currentStart;
-
-              merged.push({
-                selfTime,
-                frames: buildFrames(trace, prev.stack)
-              });
-              ``;
-              currentStart = prev.time;
-            }
-            data[key].culprits = merged;
-          });
-        }
-
-        function getTraceData(trace) {
-          const data = {};
-          for (const sample of trace.samples) {
-            const time = Math.round(sample.timestamp);
-            for (const longtask of longtaskSpans) {
-              const { start, name, id, end, duration } = longtask;
-              if (!data[id]) {
-                data[id] = {
-                  name,
-                  start,
-                  end,
-                  duration,
-                  culprits: []
+                const a = (t, e, s) => {
+                  const r = i(t, e.selfTime);
+                  s.children.push(r);
+                  for (const t of e.children) {
+                    const e = n.get(t);
+                    a(t, e, r);
+                  }
+                  e.seen = !0;
                 };
-              }
-
-              if (time >= start && time <= end) {
-                const stack = getCurrentStack(trace, sample.stackId);
-                data[id].culprits.push({
-                  time,
-                  stackId: sample.stackId,
-                  stack
-                });
-              }
-            }
-          }
-          mergeStackAndCalculateSelfTime(data, trace);
-          return data;
-        }
+                for (const [t, e] of n.entries()) e.seen || a(t, e, o);
+                return o;
+              })(e);
+            r.push({ data: s, start: e.start, end: e.end });
+          }),
+            (window.PROFILED_DATA = r);
+        }, 3e3);
       })();
     </script>
   </head>
