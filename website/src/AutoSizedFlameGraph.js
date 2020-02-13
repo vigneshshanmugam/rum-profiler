@@ -36,16 +36,22 @@ export function AutoSizedFlameGraph({ result, height }) {
   const containerRef = useRef(null);
   const [tooltipState, setTooltipState] = useState(null);
 
+  const getToolTipValue = ({ name, selfTime, value }) => {
+    const fnName = name.split(" (")[0];
+    const timings = `${value} ms (self ${selfTime} ms)`;
+    return timings + " " + fnName;
+  };
+
   const onMouseOver = (event, data) => {
     setTooltipState({
-      text: data.name,
+      text: getToolTipValue(data),
       ...getMousePos(containerRef.current, event)
     });
   };
 
   const onMouseMove = (event, data) => {
     setTooltipState({
-      text: data.name,
+      text: getToolTipValue(data),
       ...getMousePos(containerRef.current, event)
     });
   };

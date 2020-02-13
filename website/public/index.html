@@ -12,147 +12,162 @@
     <script>
       (async () => {
         let t = 1,
-          n = [];
-        const e = new PerformanceObserver(e => {
-          const s = e.getEntries();
-          for (const e of s)
-            n.push({
+          e = [];
+        const n = new PerformanceObserver(n => {
+          const s = n.getEntries();
+          for (const n of s)
+            e.push({
               id: `${t}`,
-              name: e.name,
-              start: Math.round(e.startTime),
-              end: Math.round(e.startTime + e.duration),
-              duration: Math.round(e.duration)
+              name: n.name,
+              start: Math.round(n.startTime),
+              end: Math.round(n.startTime + n.duration),
+              duration: Math.round(n.duration)
             }),
               t++;
         });
-        e.observe({ type: "longtask" });
+        n.observe({ type: "longtask" });
         const s = await performance.profile({
           categories: ["js"],
-          sampleInterval: 0.1,
+          sampleInterval: 10,
           sampleBufferSize: Number.MAX_SAFE_INTEGER
         });
-        function r(t, n) {
-          return (function(t, n) {
-            let { name: e, line: s, column: r, resourceId: o } = n;
-            if (!e && !s && !r) return "unknown";
-            e || (e = "anonymous");
-            if (!s || !r) return `${e} (native code)`;
-            const c = (function(t, n) {
-              return t.resources[n];
-            })(t, o);
-            return `${e} (${c}:${s}:${r})`;
+        function o(t, e) {
+          return (function(t, e) {
+            let { name: n, line: s, column: o, resourceId: r } = e;
+            if (!n && !s && !o) return "unknown";
+            n || (n = "anonymous");
+            if (!s || !o) return `${n} (native code)`;
+            const a = (function(t, e) {
+              return t.resources[e];
+            })(t, r);
+            return `${n} (${a}:${s}:${o})`;
           })(
             t,
-            (function(t, n) {
-              return t.frames[n];
-            })(t, n.frameId)
+            (function(t, e) {
+              return t.frames[e];
+            })(t, e.frameId)
           );
         }
-        function o(t, n) {
-          return t.stacks[n];
+        function r(t, e) {
+          return t.stacks[e];
         }
-        function c(t, n, e = []) {
-          if (!n) return e;
-          const { parentId: s } = n;
+        function a(t, e, n = []) {
+          if (!e) return n;
+          const { parentId: s } = e;
           if (null != s) {
-            return e.unshift(r(t, n)), c(t, o(t, s), e);
+            return n.unshift(o(t, e)), a(t, r(t, s), n);
           }
-          return e.unshift(r(t, n)), e;
+          return n.unshift(o(t, e)), n;
         }
-        function i(t, n) {
-          return { name: t.split("$#")[0], value: n, children: [] };
+        function i(t, e) {
+          return {
+            name: t.split("$#")[0],
+            value: e,
+            children: [],
+            selfTime: 0
+          };
         }
         setTimeout(async function() {
-          e.disconnect();
+          n.disconnect();
           const t = (function(t) {
-              const e = {};
+              const n = {};
               for (const s of t.samples) {
-                const r = Math.round(s.timestamp);
-                for (const c of n) {
-                  const { start: n, name: i, id: a, end: u, duration: f } = c;
+                const o = Math.round(s.timestamp);
+                for (const a of e) {
+                  const { start: e, name: i, id: c, end: u, duration: l } = a;
                   if (
-                    (e[a] ||
-                      (e[a] = {
+                    (n[c] ||
+                      (n[c] = {
                         name: i,
-                        start: n,
+                        start: e,
                         end: u,
-                        duration: f,
+                        duration: l,
                         culprits: []
                       }),
-                    r >= n && r <= u)
+                    o >= e && o <= u)
                   ) {
-                    const n = o(t, s.stackId);
-                    e[a].culprits.push({
-                      time: r,
+                    const e = r(t, s.stackId);
+                    n[c].culprits.push({
+                      time: o,
                       stackId: s.stackId,
-                      stack: n
+                      stack: e
                     });
                   }
                 }
               }
               return (
-                (function(t, n) {
-                  Object.keys(t).forEach(e => {
-                    const { culprits: s, start: r, end: o } = t[e],
+                (function(t, e) {
+                  Object.keys(t).forEach(n => {
+                    const { culprits: s, start: o, end: r } = t[n],
                       i = [];
-                    let a = r;
-                    for (let t = 0, e = 1; e < s.length + 1; t++, e++) {
-                      let r = s[t],
-                        u = s[e];
-                      for (; u && u.stackId === r.stackId; )
-                        e++, (r = s[++t]), (u = s[e]);
-                      const f = e === s.length,
-                        l = f ? r.time - a + (o - r.time) : r.time - a;
-                      i.push({ selfTime: l, frames: c(n, r.stack) }),
-                        (a = r.time);
+                    let c = o;
+                    for (let t = 0, n = 1; n < s.length + 1; t++, n++) {
+                      let o = s[t],
+                        u = s[n];
+                      for (; u && u.stackId === o.stackId; )
+                        n++, (o = s[++t]), (u = s[n]);
+                      const l = n === s.length,
+                        f = l ? o.time - c + (r - o.time) : o.time - c;
+                      i.push({ totalTime: f, frames: a(e, o.stack) }),
+                        (c = o.time);
                     }
-                    t[e].culprits = i;
+                    t[n].culprits = i;
                   });
-                })(e, t),
-                e
+                })(n, t),
+                n
               );
             })(await s.stop()),
-            r = [];
-          Object.keys(t).forEach(n => {
-            const e = t[n],
+            o = [];
+          Object.keys(t).forEach(e => {
+            const n = t[e],
               s = (function(t) {
-                const n = new Map(),
-                  { culprits: e, name: s, duration: r } = t,
-                  o = i(`Longtask (${s})`, r);
-                let c = null;
-                for (const t of e) {
-                  const { selfTime: e, frames: s } = t;
-                  if (0 !== s.length) {
+                const e = new Map(),
+                  { culprits: n, name: s, duration: o } = t,
+                  r = i(`Longtask (${s})`, o);
+                let a = null;
+                const c = (t, n) => {
+                  e.has(t) ||
+                    e.set(t, { children: [], totalTime: 0, seen: !1 });
+                  const s = e.get(t);
+                  a
+                    ? (s.totalTime + n <= a.totalTime && (s.totalTime += n),
+                      -1 === a.children.indexOf(t) && a.children.push(t))
+                    : (s.totalTime += n),
+                    (a = s);
+                };
+                for (const e of n) {
+                  const { totalTime: n, frames: s } = e;
+                  if (s.length > 0) {
+                    a = null;
                     for (let t = 0; t < s.length; t++) {
-                      const r = s[t],
-                        o = `${r}$#${t}`;
-                      n.has(o) ||
-                        n.set(o, { children: [], selfTime: 0, seen: !1 });
-                      const i = n.get(o);
-                      c
-                        ? (i.selfTime + e <= c.selfTime && (i.selfTime += e),
-                          -1 === c.children.indexOf(o) && c.children.push(o))
-                        : (i.selfTime += e),
-                        (c = i);
+                      const e = s[t],
+                        o = `${e}$#${t}`;
+                      c(o, n);
                     }
-                    c = null;
+                  } else if (a) {
+                    const e = `stack-unavailable$#${t.start}`;
+                    c(e, n);
                   }
                 }
-                const a = (t, e, s) => {
-                  const r = i(t, e.selfTime);
-                  s.children.push(r);
-                  for (const t of e.children) {
-                    const e = n.get(t);
-                    a(t, e, r);
+                const u = (t, n, s) => {
+                  const o = i(t, n.totalTime);
+                  s.selfTime > 0
+                    ? (s.selfTime = s.selfTime - o.value)
+                    : (s.selfTime = s.value - o.value);
+                  const r = n.children;
+                  0 === r.length && (o.selfTime = o.value), s.children.push(o);
+                  for (const t of r) {
+                    const n = e.get(t);
+                    u(t, n, o);
                   }
-                  e.seen = !0;
+                  n.seen = !0;
                 };
-                for (const [t, e] of n.entries()) e.seen || a(t, e, o);
-                return o;
-              })(e);
-            r.push({ data: s, start: e.start, end: e.end });
+                for (const [t, n] of e.entries()) n.seen || u(t, n, r);
+                return r;
+              })(n);
+            o.push({ data: s, start: n.start, end: n.end });
           }),
-            (window.PROFILED_DATA = r);
+            (window.PROFILED_DATA = o);
         }, 3e3);
       })();
     </script>
