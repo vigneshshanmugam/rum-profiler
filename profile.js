@@ -99,54 +99,55 @@
     return trace.resources[resource];
   }
 
-  function createNode(name, value) {
+  function createFlameGraphNode(name, value) {
     const actualName = name.split("$#")[0];
     return {
       name: actualName,
       value,
-      children: []
+      children: [],
+      selfTime: 0
     };
   }
 
   function getFlameGraphData(data) {
     const map = new Map();
     const { culprits, name, duration } = data;
-    const rootNode = createNode(`Longtask (${name})`, duration);
+    const rootNode = createFlameGraphNode(`Longtask (${name})`, duration);
     let currLevel = null;
     /**
      * Merge frames on all stacks together
      */
-    const updateMap = (key, selfTime) => {
+    const updateMap = (key, totalTime) => {
       if (!map.has(key)) {
         map.set(key, {
           children: [],
-          selfTime: 0,
+          totalTime: 0,
           seen: false
         });
       }
       const value = map.get(key);
       if (currLevel) {
-        if (value.selfTime + selfTime <= currLevel.selfTime) {
-          value.selfTime += selfTime;
+        if (value.totalTime + totalTime <= currLevel.totalTime) {
+          value.totalTime += totalTime;
         }
         if (currLevel.children.indexOf(key) === -1) {
           currLevel.children.push(key);
         }
       } else {
-        value.selfTime += selfTime;
+        value.totalTime += totalTime;
       }
       currLevel = value;
     };
 
     for (const culprit of culprits) {
-      const { selfTime, frames } = culprit;
+      const { totalTime, frames } = culprit;
 
       if (frames.length > 0) {
         currLevel = null;
       } else {
         if (currLevel) {
           const key = `stack-unavailable$#${data.start}`;
-          updateMap(key, selfTime);
+          updateMap(key, totalTime);
         }
         continue;
       }
@@ -154,14 +155,24 @@
       for (let depth = 0; depth < frames.length; depth++) {
         const frame = frames[depth];
         const key = `${frame}$#${depth}`;
-        updateMap(key, selfTime);
+        updateMap(key, totalTime);
       }
     }
 
     const bfs = (currFrame, currentValue, rootNode) => {
-      const node = createNode(currFrame, currentValue.selfTime);
+      const node = createFlameGraphNode(currFrame, currentValue.totalTime);
+      if (rootNode.selfTime > 0) {
+        rootNode.selfTime = rootNode.selfTime - node.value;
+      } else {
+        rootNode.selfTime = rootNode.value - node.value;
+      }
+      const currentChildFrames = currentValue.children;
+      if (currentChildFrames.length === 0) {
+        node.selfTime = node.value;
+      }
       rootNode.children.push(node);
-      for (const frame of currentValue.children) {
+
+      for (const frame of currentChildFrames) {
         const nodeValue = map.get(frame);
         bfs(frame, nodeValue, node);
       }
@@ -180,7 +191,7 @@
     return rootNode;
   }
 
-  function mergeStackAndCalculateSelfTime(data, trace) {
+  function mergeStackAndCalculateTotalTime(data, trace) {
     Object.keys(data).forEach(key => {
       const { culprits, start, end } = data[key];
       const merged = [];
@@ -195,15 +206,14 @@
           current = culprits[j];
         }
         const isLast = j === culprits.length;
-        const selfTime = isLast
+        const totalTime = isLast
           ? prev.time - currentStart + (end - prev.time)
           : prev.time - currentStart;
 
         merged.push({
-          selfTime,
+          totalTime,
           frames: buildFrames(trace, prev.stack)
         });
-        ``;
         currentStart = prev.time;
       }
       data[key].culprits = merged;
@@ -236,7 +246,7 @@
         }
       }
     }
-    mergeStackAndCalculateSelfTime(data, trace);
+    mergeStackAndCalculateTotalTime(data, trace);
     return data;
   }
 })();
