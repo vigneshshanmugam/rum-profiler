@@ -23,7 +23,9 @@ function makeSlowTask(ms) {
 
 function App() {
   const [flameGraph, setFlameGraph] = useState(false);
-  const Loading = () => <div>Flame graph data is getting generated...</div>;
+  const Loading = () => (
+    <div className="loading">Flame graph data is getting generated...</div>
+  );
 
   setTimeout(() => {
     setFlameGraph(true);

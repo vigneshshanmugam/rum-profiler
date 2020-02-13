@@ -62,37 +62,40 @@ export function AutoSizedFlameGraph({ result, height }) {
   return (
     <div
       style={{
-        height,
-        backgroundColor: "#fff",
-        padding: "20px",
+        backgroundColor: "#ddb",
         boxSizing: "border-box",
-        borderRadius: "0.5rem"
+        borderRadius: "0.5rem",
+        margin: "20px",
+        padding: "10px",
+        overflow: "auto"
       }}
       ref={containerRef}
     >
       <h3>
         Long task starts at {result.start} ms and ends at {result.end} ms
       </h3>
-      <AutoSizer>
-        {({ height: autoSizerHeight, width }) => (
-          <Fragment>
-            <FlameGraph
-              data={result.data}
-              disableDefaultTooltips={true}
-              height={autoSizerHeight}
-              width={width}
-              onMouseMove={onMouseMove}
-              onMouseOver={onMouseOver}
-              onMouseOut={onMouseOut}
-            />
-            {tooltipState !== null && (
-              <div ref={tooltipRef} className="tooltip">
-                {tooltipState.text}
-              </div>
-            )}
-          </Fragment>
-        )}
-      </AutoSizer>
+      <div style={{ height, overflow: "auto" }}>
+        <AutoSizer>
+          {({ height: autoSizerHeight, width }) => (
+            <Fragment>
+              <FlameGraph
+                data={result.data}
+                disableDefaultTooltips={true}
+                height={autoSizerHeight}
+                width={width}
+                onMouseMove={onMouseMove}
+                onMouseOver={onMouseOver}
+                onMouseOut={onMouseOut}
+              />
+              {tooltipState !== null && (
+                <div ref={tooltipRef} className="tooltip">
+                  {tooltipState.text}
+                </div>
+              )}
+            </Fragment>
+          )}
+        </AutoSizer>
+      </div>
     </div>
   );
 }
