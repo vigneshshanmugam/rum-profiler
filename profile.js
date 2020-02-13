@@ -226,17 +226,16 @@
       const time = Math.round(sample.timestamp);
       for (const longtask of longtaskSpans) {
         const { start, name, id, end, duration } = longtask;
-        if (!data[id]) {
-          data[id] = {
-            name,
-            start,
-            end,
-            duration,
-            culprits: []
-          };
-        }
-
         if (time >= start && time <= end) {
+          if (!data[id]) {
+            data[id] = {
+              name,
+              start,
+              end,
+              duration,
+              culprits: []
+            };
+          }
           const stack = getCurrentStack(trace, sample.stackId);
           data[id].culprits.push({
             time,
