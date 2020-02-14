@@ -2,13 +2,13 @@
  * Most of the code is based on the React flame graph example code
  * https://github.com/bvaughn/react-flame-graph/blob/master/website/src/
  */
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 const TOOLTIP_OFFSET = 4;
 
 export default function useSmartTooltip({ mouseX, mouseY }) {
   const ref = useRef(null);
-  useLayoutEffect(() => {
+  useEffect(() => {
     const element = ref.current;
     if (element != null) {
       if (

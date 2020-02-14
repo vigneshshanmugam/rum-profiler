@@ -15,10 +15,8 @@ function getMousePos(relativeContainer, mouseEvent) {
   }
 }
 
-export default function FlameGraphs() {
-  const list = window.PROFILED_DATA;
-
-  const graphs = list.map((result, index) => (
+export default function FlameGraphs({ flamegraphs }) {
+  const graphs = flamegraphs.map((result, index) => (
     <AutoSizedFlameGraph
       key={index}
       result={result}
@@ -56,9 +54,7 @@ export function AutoSizedFlameGraph({ result, height }) {
     });
   };
 
-  const onMouseOut = (event, data) => {
-    setTooltipState(null);
-  };
+  const onMouseOut = () => setTooltipState(null);
 
   const tooltipRef = useSmartTooltip({
     mouseX: tooltipState === null ? 0 : tooltipState.mouseX,
@@ -94,7 +90,7 @@ export function AutoSizedFlameGraph({ result, height }) {
                 onMouseOut={onMouseOut}
               />
               {tooltipState !== null && (
-                <div ref={tooltipRef} className="tooltip">
+                <div ref={tooltipRef} className="Tooltip">
                   {tooltipState.text}
                 </div>
               )}

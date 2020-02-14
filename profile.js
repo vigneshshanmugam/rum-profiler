@@ -29,20 +29,32 @@
     po.disconnect();
     const trace = await profiler.stop();
     const traceData = getTraceData(trace);
-    const PROFILED_DATA = [];
-    Object.keys(traceData).forEach(key => {
-      const data = traceData[key];
-      const flamegraph = getFlameGraphData(data);
-      PROFILED_DATA.push({
-        data: flamegraph,
-        start: data.start,
-        end: data.end
+    try {
+      const serverhost = "http://localhost:8080";
+      const postUrl = `${serverhost}/flamegraph`;
+      const resp = await fetch(postUrl, {
+        method: "POST",
+        body: JSON.stringify(traceData),
+        mode: "cors",
+        redirect: "follow"
       });
-    });
-    window.PROFILED_DATA = PROFILED_DATA;
+      const url = await resp.text();
+      const generatedLink = `${serverhost}/trace/${url}`;
+      console.log(
+        "%c Open this link in new tab to see the profiler data - " +
+          generatedLink,
+        "color: red"
+      );
+      window.open(generatedLink, "_blank");
+    } catch (e) {
+      console.error(
+        "Failed to generate flamegraphs data because of an error",
+        e
+      );
+    }
   }
 
-  setTimeout(stop, 3000);
+  window.addEventListener("load", () => stop());
 
   function buildCodeFrame(trace, stack) {
     const frame = getCurrentFrame(trace, stack.frameId);
@@ -97,98 +109,6 @@
 
   function getResource(trace, resource) {
     return trace.resources[resource];
-  }
-
-  function createFlameGraphNode(name, value) {
-    const actualName = name.split("$#")[0];
-    return {
-      name: actualName,
-      value,
-      children: [],
-      selfTime: 0
-    };
-  }
-
-  function getFlameGraphData(data) {
-    const map = new Map();
-    const { culprits, name, duration } = data;
-    const rootNode = createFlameGraphNode(`Longtask (${name})`, duration);
-    let currLevel = null;
-    /**
-     * Merge frames on all stacks together
-     */
-    const updateMap = (key, totalTime) => {
-      if (!map.has(key)) {
-        map.set(key, {
-          children: [],
-          totalTime: 0,
-          seen: false
-        });
-      }
-      const value = map.get(key);
-      if (currLevel) {
-        if (value.totalTime + totalTime <= currLevel.totalTime) {
-          value.totalTime += totalTime;
-        }
-        if (currLevel.children.indexOf(key) === -1) {
-          currLevel.children.push(key);
-        }
-      } else {
-        value.totalTime += totalTime;
-      }
-      currLevel = value;
-    };
-
-    for (const culprit of culprits) {
-      const { totalTime, frames } = culprit;
-
-      if (frames.length > 0) {
-        currLevel = null;
-      } else {
-        if (currLevel) {
-          const key = `stack-unavailable$#${data.start}`;
-          updateMap(key, totalTime);
-        }
-        continue;
-      }
-
-      for (let depth = 0; depth < frames.length; depth++) {
-        const frame = frames[depth];
-        const key = `${frame}$#${depth}`;
-        updateMap(key, totalTime);
-      }
-    }
-
-    const bfs = (currFrame, currentValue, rootNode) => {
-      const node = createFlameGraphNode(currFrame, currentValue.totalTime);
-      if (rootNode.selfTime > 0) {
-        rootNode.selfTime = rootNode.selfTime - node.value;
-      } else {
-        rootNode.selfTime = rootNode.value - node.value;
-      }
-      const currentChildFrames = currentValue.children;
-      if (currentChildFrames.length === 0) {
-        node.selfTime = node.value;
-      }
-      rootNode.children.push(node);
-
-      for (const frame of currentChildFrames) {
-        const nodeValue = map.get(frame);
-        bfs(frame, nodeValue, node);
-      }
-      currentValue.seen = true;
-    };
-
-    /**
-     * Combine the frames in to flamegraph chart data
-     */
-    for (const [key, value] of map.entries()) {
-      if (value.seen) {
-        continue;
-      }
-      bfs(key, value, rootNode);
-    }
-    return rootNode;
   }
 
   function mergeStackAndCalculateTotalTime(data, trace) {
