@@ -11,15 +11,14 @@ const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
   const server = express();
+  server.use(cors());
 
-  server.post("/flamegraph", cors(), express.json(), (req, res) => {
-    console.log("Hitting flamegraph Id", req.body);
+  server.post("/flamegraph", express.json(), (req, res) => {
     const cacheKey = storeTrace(req.body);
     return res.end(`${cacheKey}`);
   });
 
   server.get("/trace/:id", async (req, res) => {
-    console.log("Hitting trace Id", req.params.id);
     const extractedCacheKey = req.params.id;
     const trace = getTrace(extractedCacheKey);
     const data = await app.render(req, res, "/trace", {

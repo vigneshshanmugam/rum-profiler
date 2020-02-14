@@ -1,7 +1,10 @@
 import React, { Component } from "react";
 import FlameGraph from "../components/AutoSizedFlameGraph";
 
-// export function getServerProps(ctx) {
+/**
+ * Trying getServerProps
+ */
+// export function unstable_getServerProps(ctx) {
 //   return {
 //     props: {}
 //   };
