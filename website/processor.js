@@ -1,7 +1,20 @@
 const LRU = require("lru-cache");
 
+/**
+ * Demo flamegraphs
+ * Lives till server's lifetime
+ */
+const NEVER_DELETE = ["zalando", "elastic", "kibana"];
+
 const cache = new LRU({
-  maxAge: 86400 // 1day
+  max: 100,
+  maxAge: 3 * 60 * 60 * 1000, // 3 hours
+  noDisposeOnSet: true,
+  dispose: (key, value) => {
+    if (NEVER_DELETE.indexOf(key) >= 0) {
+      process.nextTick(() => cache.set(key, value));
+    }
+  }
 });
 
 function createFlameGraphNode(name, value) {
@@ -110,9 +123,11 @@ function getFlameGraphData(data) {
   return rootNode;
 }
 
-function storeTrace(trace) {
-  const hrTime = process.hrtime();
-  const cacheKey = hrTime[0] * 1e9 + hrTime[1]; //  nanoseconds
+function storeTrace(trace, cacheKey) {
+  if (!cacheKey) {
+    const hrTime = process.hrtime();
+    cacheKey = hrTime[0] * 1e9 + hrTime[1]; //  nanoseconds
+  }
   const flameGraph = generateFlameGraph(trace);
   cache.set(`${cacheKey}`, flameGraph);
   return cacheKey;

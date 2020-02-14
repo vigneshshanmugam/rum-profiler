@@ -14,7 +14,8 @@ app.prepare().then(() => {
   server.use(cors());
 
   server.post("/flamegraph", express.json(), (req, res) => {
-    const cacheKey = storeTrace(req.body);
+    const { id } = req.query;
+    const cacheKey = storeTrace(req.body, id);
     return res.end(`${cacheKey}`);
   });
 
