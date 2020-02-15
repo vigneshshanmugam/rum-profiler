@@ -87,12 +87,11 @@ export function AutoSizedFlameGraph({ result, height }) {
         padding: "10px",
         overflow: "auto"
       }}
-      ref={containerRef}
     >
       <h3>
         Long task starts at {result.start} ms and ends at {result.end} ms
       </h3>
-      <div style={{ height, overflow: "auto" }}>
+      <div style={{ height, overflow: "auto" }} ref={containerRef}>
         <AutoSizer>
           {({ height: autoSizerHeight, width }) => (
             <Fragment>
