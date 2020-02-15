@@ -15,15 +15,31 @@ function getMousePos(relativeContainer, mouseEvent) {
   }
 }
 
-export default function FlameGraphs({ flamegraphs }) {
-  const graphs = flamegraphs.map((result, index) => (
-    <AutoSizedFlameGraph
-      key={index}
-      result={result}
-      height={300}
-    ></AutoSizedFlameGraph>
-  ));
-  return graphs;
+export default function FlameGraphs({ flamegraphs, id }) {
+  let displayFlamegraphs = false;
+  let message = "There are no long tasks on the page";
+  // trace page
+  if (id && !flamegraphs) {
+    message = "No Trace data available for " + id;
+  } else if (flamegraphs && flamegraphs.length > 0) {
+    message = "No of long tasks present on the trace: " + flamegraphs.length;
+    displayFlamegraphs = true;
+  }
+
+  return (
+    <>
+      <h2>{message}</h2>
+      {displayFlamegraphs
+        ? flamegraphs.map((result, index) => (
+            <AutoSizedFlameGraph
+              key={index}
+              result={result}
+              height={300}
+            ></AutoSizedFlameGraph>
+          ))
+        : ""}
+    </>
+  );
 }
 
 /**

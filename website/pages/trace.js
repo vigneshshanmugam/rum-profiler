@@ -13,13 +13,13 @@ import FlameGraph from "../components/AutoSizedFlameGraph";
 export default class Trace extends Component {
   static getInitialProps({ query }) {
     return {
-      flamegraphs: query.flamegraphs
+      flamegraphs: query.flamegraphs,
+      id: query.id
     };
   }
 
   render() {
-    const flamegraphs = this.props.flamegraphs;
-    const Fallback = () => <h2>No Trace data available</h2>;
+    const { flamegraphs, id } = this.props;
 
     return (
       <>
@@ -34,7 +34,8 @@ export default class Trace extends Component {
               font-weight: lighter;
             }
             h2 {
-              color: "#fff";
+              padding: 20px;
+              color: coral;
             }
             .App {
               max-width: 1200px;
@@ -51,11 +52,7 @@ export default class Trace extends Component {
           `}
         </style>
         <div className="App">
-          {flamegraphs.length === 0 ? (
-            <Fallback />
-          ) : (
-            <FlameGraph flamegraphs={flamegraphs} />
-          )}
+          <FlameGraph flamegraphs={flamegraphs} id={id} />
         </div>
       </>
     );

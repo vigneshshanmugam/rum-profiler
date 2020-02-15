@@ -1,4 +1,6 @@
 {
   "name": "rum-profiler",
-  "version": 1
+  "alias": "rum-profiler",
+  "version": 1,
+  "public": "true"
 }

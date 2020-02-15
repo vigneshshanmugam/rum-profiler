@@ -23,7 +23,8 @@ app.prepare().then(() => {
     const extractedCacheKey = req.params.id;
     const trace = getTrace(extractedCacheKey);
     const data = await app.render(req, res, "/trace", {
-      flamegraphs: trace ? trace : []
+      flamegraphs: trace,
+      id: extractedCacheKey
     });
     return res.end(data);
   });

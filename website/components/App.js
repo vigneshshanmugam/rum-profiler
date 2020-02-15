@@ -30,7 +30,8 @@ export default function App() {
             font-weight: lighter;
           }
           h2 {
-            color: "#fff";
+            padding: 20px;
+            color: coral;
           }
           .App {
             max-width: 1200px;
