@@ -1,15 +1,13 @@
 import React from "react";
 import Head from "next/head";
-import App from "../components/App";
+import Home from "../components/Home";
 
-const Home = () => (
+export default () => (
   <div>
     <Head>
-      <title>Home</title>
+      <title>Longtask API and Experimental JavaScript sampling profiler</title>
       <link rel="icon" href="/favicon.ico" />
     </Head>
-    <App></App>
+    <Home />
   </div>
 );
-
-export default Home;

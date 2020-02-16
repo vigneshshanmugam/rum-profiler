@@ -8,12 +8,14 @@
     "start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
+    "codemirror": "^5.51.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "isomorphic-unfetch": "^3.0.0",
     "lru-cache": "^5.1.1",
     "next": "9.2.2-canary.9",
     "react": "16.12.0",
+    "react-codemirror": "^1.0.0",
     "react-dom": "16.12.0",
     "react-flame-graph": "^1.4.0",
     "react-virtualized-auto-sizer": "^1.0.2"
