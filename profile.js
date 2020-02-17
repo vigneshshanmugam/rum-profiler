@@ -34,6 +34,9 @@
       const postUrl = `${serverhost}/flamegraph`;
       const resp = await fetch(postUrl, {
         method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
         body: JSON.stringify(traceData),
         mode: "cors",
         redirect: "follow"
