@@ -21,7 +21,7 @@
 
   const profiler = await performance.profile({
     categories: ["js"],
-    sampleInterval: 10,
+    sampleInterval: 1,
     sampleBufferSize: Number.MAX_SAFE_INTEGER
   });
 
