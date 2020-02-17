@@ -65,13 +65,15 @@ if (global.window) {
         e.push({
           id: `${t}`,
           name: n.name,
+          type: n.entryType,
           start: Math.round(n.startTime),
           end: Math.round(n.startTime + n.duration),
           duration: Math.round(n.duration)
         }),
           t++;
     });
-    n.observe({ type: "longtask" });
+    n.observe({ type: "longtask", buffered: true });
+    n.observe({ type: "measure", buffered: true });
     const s = await performance.profile({
       categories: ["js"],
       sampleInterval: 10,
@@ -115,13 +117,14 @@ if (global.window) {
           for (const s of t.samples) {
             const o = Math.round(s.timestamp);
             for (const a of e) {
-              const { start: e, name: i, id: c, end: u, duration: l } = a;
+              const { start: e, name: i, id: c, end: u, duration: l, type } = a;
               if (o >= e && o <= u) {
                 n[c] ||
                   (n[c] = {
                     name: i,
                     start: e,
                     end: u,
+                    type,
                     duration: l,
                     culprits: []
                   });
@@ -156,8 +159,14 @@ if (global.window) {
         const n = t[e],
           s = (function(t) {
             const e = new Map(),
-              { culprits: n, name: s, duration: o } = t,
-              r = i(`Longtask (${s})`, o);
+              { culprits: n, name: s, duration: o, type: tp } = t,
+              tg =
+                tp === "longtask"
+                  ? "Longtask"
+                  : tp === "measure"
+                  ? "User Timing"
+                  : tp;
+            r = i(`${tg} (${s})`, o);
             let a = null;
             const c = (t, n) => {
               e.has(t) || e.set(t, { children: [], totalTime: 0, seen: !1 });

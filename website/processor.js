@@ -43,8 +43,14 @@ function generateFlameGraph(trace) {
 
 function getFlameGraphData(data) {
   const map = new Map();
-  const { culprits, name, duration } = data;
-  const rootNode = createFlameGraphNode(`Longtask (${name})`, duration);
+  const { culprits, name, type, duration } = data;
+  let taskName = type;
+  if (type === "longtask") {
+    taskName = "Longtask";
+  } else if (type === "measure") {
+    taskName = "User Timing";
+  }
+  const rootNode = createFlameGraphNode(`${taskName} (${name})`, duration);
   let currLevel = null;
   /**
    * Merge frames on all stacks together

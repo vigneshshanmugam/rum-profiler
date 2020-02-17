@@ -13,7 +13,7 @@ app.prepare().then(() => {
   const server = express();
   server.use(cors());
 
-  server.post("/flamegraph", express.json(), (req, res) => {
+  server.post("/flamegraph", express.json({ limit: "3mb" }), (req, res) => {
     const { id } = req.query;
     const cacheKey = storeTrace(req.body, id);
     return res.end(`${cacheKey}`);

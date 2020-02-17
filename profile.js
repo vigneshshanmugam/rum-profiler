@@ -1,11 +1,12 @@
 (async () => {
   let i = 1;
-  let longtaskSpans = [];
+  let interestedTasks = [];
   const po = new PerformanceObserver(list => {
     const entries = list.getEntries();
     for (const entry of entries) {
-      longtaskSpans.push({
+      interestedTasks.push({
         id: `${i}`,
+        type: entry.entryType,
         name: entry.name,
         start: Math.round(entry.startTime),
         end: Math.round(entry.startTime + entry.duration),
@@ -16,7 +17,8 @@
   });
 
   po.observe({
-    type: "longtask"
+    type: "longtask",
+    buffered: true
   });
 
   const profiler = await performance.profile({
@@ -30,7 +32,7 @@
     const trace = await profiler.stop();
     const traceData = getTraceData(trace);
     try {
-      const serverhost = "http://localhost:8080";
+      const serverhost = "https://rum-profiler.now.sh";
       const postUrl = `${serverhost}/flamegraph`;
       const resp = await fetch(postUrl, {
         method: "POST",
@@ -147,12 +149,13 @@
     const data = {};
     for (const sample of trace.samples) {
       const time = Math.round(sample.timestamp);
-      for (const longtask of longtaskSpans) {
-        const { start, name, id, end, duration } = longtask;
+      for (const task of interestedTasks) {
+        const { start, name, type, id, end, duration } = task;
         if (time >= start && time <= end) {
           if (!data[id]) {
             data[id] = {
               name,
+              type,
               start,
               end,
               duration,
