@@ -4,11 +4,18 @@ const LRU = require("lru-cache");
  * Demo flamegraphs
  * Lives till server's lifetime
  */
-const NEVER_DELETE = ["zalando", "elastic", "kibana"];
+const NEVER_DELETE = [
+  "zalando",
+  "elastic",
+  "twitter",
+  "reddit",
+  "airbnb",
+  "netflix"
+];
 
 const cache = new LRU({
   max: 100,
-  maxAge: 3 * 60 * 60 * 1000, // 3 hours
+  maxAge: 10 * 60 * 60 * 1000, // 10 hours
   noDisposeOnSet: true,
   dispose: (key, value) => {
     if (NEVER_DELETE.indexOf(key) >= 0) {
