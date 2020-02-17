@@ -51,124 +51,162 @@ export default function App() {
   );
 }
 
-/**
- * Profiler code
- */
-(async () => {
-  let t = 1,
-    n = [];
-  const e = new PerformanceObserver(e => {
-    const r = e.getEntries();
-    for (const e of r)
-      n.push({
-        id: `${t}`,
-        name: e.name,
-        start: Math.round(e.startTime),
-        end: Math.round(e.startTime + e.duration),
-        duration: Math.round(e.duration)
-      }),
-        t++;
-  });
-  e.observe({ type: "longtask" });
-  const r = await performance.profile({
-    categories: ["js"],
-    sampleInterval: 1,
-    sampleBufferSize: Number.MAX_SAFE_INTEGER
-  });
-  async function o() {
-    e.disconnect();
-    const t = (function(t) {
-      const e = {};
-      for (const r of t.samples) {
-        const o = Math.round(r.timestamp);
-        for (const a of n) {
-          const { start: n, name: c, id: i, end: u, duration: f } = a;
-          if (o >= n && o <= u) {
-            e[i] ||
-              (e[i] = { name: c, start: n, end: u, duration: f, culprits: [] });
-            const a = s(t, r.stackId);
-            e[i].culprits.push({ time: o, stackId: r.stackId, stack: a });
-          }
-        }
-      }
-      return (
-        (function(t, n) {
-          Object.keys(t).forEach(e => {
-            const { culprits: r, start: o, end: a } = t[e],
-              s = [];
-            let i = o;
-            for (let t = 0, e = 1; e < r.length + 1; t++, e++) {
-              let o = r[t],
-                u = r[e];
-              for (; u && u.stackId === o.stackId; )
-                e++, (o = r[++t]), (u = r[e]);
-              const f = e === r.length,
-                d = f ? o.time - i + (a - o.time) : o.time - i;
-              s.push({ totalTime: d, frames: c(n, o.stack) }), (i = o.time);
-            }
-            t[e].culprits = s;
-          });
-        })(e, t),
-        e
-      );
-    })(await r.stop());
-    try {
-      const n = "http://localhost:8080",
-        e = `${n}/flamegraph`,
-        r = await fetch(e, {
-          method: "POST",
-          body: JSON.stringify(t),
-          mode: "cors",
-          redirect: "follow"
-        }),
-        o = `${n}/trace/${await r.text()}`;
-      console.log(
-        "%c Open this link in new tab to see the profiler data - " + o,
-        "color: red"
-      ),
-        window.open(o, "_blank");
-    } catch (t) {
-      console.error(
-        "Failed to generate flamegraphs data because of an error",
-        t
-      );
-    }
-  }
-  function a(t, n) {
-    return (function(t, n) {
-      let { name: e, line: r, column: o, resourceId: a } = n;
-      if (!e && !r && !o) return "unknown";
-      e || (e = "anonymous");
-      if (!r || !o) return `${e} (native code)`;
-      const s = (function(t, n) {
-        return t.resources[n];
-      })(t, a);
-      return `${e} (${s}:${r}:${o})`;
-    })(
-      t,
-      (function(t, n) {
-        return t.frames[n];
-      })(t, n.frameId)
-    );
-  }
-  function s(t, n) {
-    return t.stacks[n];
-  }
-  function c(t, n, e = []) {
-    if (!n) return e;
-    const { parentId: r } = n;
-    if (null != r) {
-      return e.unshift(a(t, n)), c(t, s(t, r), e);
-    }
-    return e.unshift(a(t, n)), e;
-  }
-  window.addEventListener("load", () => o());
-})();
-
-/**
- * Similating long tasks in the browser to get some data
- */
 if (global.window) {
+  /**
+   * Profiler code
+   */
+  (async () => {
+    if (!global.window) return;
+    let t = 1,
+      e = [];
+    const n = new PerformanceObserver(n => {
+      const s = n.getEntries();
+      for (const n of s)
+        e.push({
+          id: `${t}`,
+          name: n.name,
+          start: Math.round(n.startTime),
+          end: Math.round(n.startTime + n.duration),
+          duration: Math.round(n.duration)
+        }),
+          t++;
+    });
+    n.observe({ type: "longtask" });
+    const s = await performance.profile({
+      categories: ["js"],
+      sampleInterval: 10,
+      sampleBufferSize: Number.MAX_SAFE_INTEGER
+    });
+    function o(t, e) {
+      return (function(t, e) {
+        let { name: n, line: s, column: o, resourceId: r } = e;
+        if (!n && !s && !o) return "unknown";
+        n || (n = "anonymous");
+        if (!s || !o) return `${n} (native code)`;
+        const a = (function(t, e) {
+          return t.resources[e];
+        })(t, r);
+        return `${n} (${a}:${s}:${o})`;
+      })(
+        t,
+        (function(t, e) {
+          return t.frames[e];
+        })(t, e.frameId)
+      );
+    }
+    function r(t, e) {
+      return t.stacks[e];
+    }
+    function a(t, e, n = []) {
+      if (!e) return n;
+      const { parentId: s } = e;
+      if (null != s) {
+        return n.unshift(o(t, e)), a(t, r(t, s), n);
+      }
+      return n.unshift(o(t, e)), n;
+    }
+    function i(t, e) {
+      return { name: t.split("$#")[0], value: e, children: [], selfTime: 0 };
+    }
+    setTimeout(async function() {
+      n.disconnect();
+      const t = (function(t) {
+          const n = {};
+          for (const s of t.samples) {
+            const o = Math.round(s.timestamp);
+            for (const a of e) {
+              const { start: e, name: i, id: c, end: u, duration: l } = a;
+              if (o >= e && o <= u) {
+                n[c] ||
+                  (n[c] = {
+                    name: i,
+                    start: e,
+                    end: u,
+                    duration: l,
+                    culprits: []
+                  });
+                const a = r(t, s.stackId);
+                n[c].culprits.push({ time: o, stackId: s.stackId, stack: a });
+              }
+            }
+          }
+          return (
+            (function(t, e) {
+              Object.keys(t).forEach(n => {
+                const { culprits: s, start: o, end: r } = t[n],
+                  i = [];
+                let c = o;
+                for (let t = 0, n = 1; n < s.length + 1; t++, n++) {
+                  let o = s[t],
+                    u = s[n];
+                  for (; u && u.stackId === o.stackId; )
+                    n++, (o = s[++t]), (u = s[n]);
+                  const l = n === s.length,
+                    f = l ? o.time - c + (r - o.time) : o.time - c;
+                  i.push({ totalTime: f, frames: a(e, o.stack) }), (c = o.time);
+                }
+                t[n].culprits = i;
+              });
+            })(n, t),
+            n
+          );
+        })(await s.stop()),
+        o = [];
+      Object.keys(t).forEach(e => {
+        const n = t[e],
+          s = (function(t) {
+            const e = new Map(),
+              { culprits: n, name: s, duration: o } = t,
+              r = i(`Longtask (${s})`, o);
+            let a = null;
+            const c = (t, n) => {
+              e.has(t) || e.set(t, { children: [], totalTime: 0, seen: !1 });
+              const s = e.get(t);
+              a
+                ? (s.totalTime + n <= a.totalTime && (s.totalTime += n),
+                  -1 === a.children.indexOf(t) && a.children.push(t))
+                : (s.totalTime += n),
+                (a = s);
+            };
+            for (const e of n) {
+              const { totalTime: n, frames: s } = e;
+              if (s.length > 0) {
+                a = null;
+                for (let t = 0; t < s.length; t++) {
+                  const e = s[t],
+                    o = `${e}$#${t}`;
+                  c(o, n);
+                }
+              } else if (a) {
+                const e = `stack-unavailable$#${t.start}`;
+                c(e, n);
+              }
+            }
+            const u = (t, n, s) => {
+              const o = i(t, n.totalTime);
+              s.selfTime > 0
+                ? (s.selfTime = s.selfTime - o.value)
+                : (s.selfTime = s.value - o.value);
+              const r = n.children;
+              0 === r.length && (o.selfTime = o.value), s.children.push(o);
+              for (const t of r) {
+                const n = e.get(t);
+                u(t, n, o);
+              }
+              n.seen = !0;
+            };
+            for (const [t, n] of e.entries()) n.seen || u(t, n, r);
+            return r;
+          })(n);
+        o.push({ data: s, start: n.start, end: n.end });
+      }),
+        (window.PROFILED_DATA = o);
+    }, 4e3);
+  })();
+
+  /**
+   * Similating long tasks in the browser to get some data
+   */
   var noOfTasks = 0;
   function makeSlowTask(ms) {
     var begin = window.performance.now();
@@ -181,7 +219,7 @@ if (global.window) {
     // Random number in range 100 - 400ms
     var randTaskLen = Math.round(Math.random() * (400 - 10)) + 10;
     var randDelay = Math.round(Math.random() * (1000 - 300)) + 300;
-    setTimeout(function() {
+    setTimeout(function schedule() {
       makeSlowTask(randTaskLen);
       noOfTasks++;
       loop();
