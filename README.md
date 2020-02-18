@@ -18,6 +18,8 @@ The API is experimental, Its available only on Chrome behind a flag `--enable-bl
 
 2. Reload the web page and check your dev-tools console for the link to the generated trace report.
 
+3. You can use [Chrome Local Overrides](https://developers.google.com/web/updates/2018/01/devtools#overrides) feature to insert the script in any website.
+
 ### How it runs
 
 1. The profiler is started as soon as the script is run and starts capturing JS stack traces every 1 ms based on the samplingInterval.
