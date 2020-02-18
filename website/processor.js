@@ -14,8 +14,7 @@ const NEVER_DELETE = [
 ];
 
 const cache = new LRU({
-  max: 100,
-  maxAge: 10 * 60 * 60 * 1000, // 10 hours
+  maxAge: 5 * 60 * 60 * 1000, // 5 hours
   noDisposeOnSet: true,
   dispose: (key, value) => {
     if (NEVER_DELETE.indexOf(key) >= 0) {

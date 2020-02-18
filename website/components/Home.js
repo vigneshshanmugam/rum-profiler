@@ -86,8 +86,8 @@ export default function Home() {
       <p>
         1. Paste the below snippet inside script tags in head of any web page{" "}
         <br />
-        <CodeBlock code={PROFILER_CODE} />
       </p>
+      <CodeBlock code={PROFILER_CODE} />
       <p>
         2. Reload the page and check the devtools console for the link to actual
         trace.
