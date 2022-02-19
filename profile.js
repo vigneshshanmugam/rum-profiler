@@ -21,16 +21,16 @@
     buffered: true
   });
 
-  const profiler = await performance.profile({
-    categories: ["js"],
+  const profiler = new Profiler({
     sampleInterval: 1,
-    sampleBufferSize: Number.MAX_SAFE_INTEGER
+    maxBufferSize: Number.MAX_SAFE_INTEGER
   });
 
   async function stop() {
     po.disconnect();
     const trace = await profiler.stop();
     const traceData = getTraceData(trace);
+    console.log({traceData});
     try {
       const serverhost = "https://rum-profiler.now.sh";
       const postUrl = `${serverhost}/flamegraph`;

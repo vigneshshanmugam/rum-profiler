@@ -74,10 +74,9 @@ if (global.window) {
     });
     n.observe({ type: "longtask", buffered: true });
     n.observe({ type: "measure", buffered: true });
-    const s = await performance.profile({
-      categories: ["js"],
+    const s = new Profiler({
       sampleInterval: 10,
-      sampleBufferSize: Number.MAX_SAFE_INTEGER
+      maxBufferSize: Number.MAX_SAFE_INTEGER
     });
     function o(t, e) {
       return (function(t, e) {
