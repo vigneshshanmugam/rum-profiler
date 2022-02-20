@@ -22,7 +22,7 @@ export default function Home() {
         </a>
       </h3>
       <p>
-        This demo uses the Longtask API and experimental JavaScript
+        This demo uses the Longtask API and JavaScript
         Self-Profiling API to capture the stack trace of tasks that blocks the
         UI thread for more than 50 milliseconds.
       </p>
@@ -75,16 +75,12 @@ export default function Home() {
       </p>
       <h3>How to run the profiler</h3>
       <p>
-        JavaScript Self-Profiler API is experimental, Its available only from
-        Chrome 78 behind a flag --enable-blink-features=ExperimentalJSProfiler.
-        You can also head to{" "}
-        <a href="chrome://flags/#enable-experimental-web-platform-features">
-          chrome://flags/#enable-experimental-web-platform-features
-        </a>{" "}
-        and enable it.
+        JavaScript Self-Profiler API is available in Chrome to any page with the
+        [`Document-Policy: js-profiling`](https://calendar.perfplanet.com/2021/js-self-profiling-api-in-practice/#js-self-profiling-document-policy)
+        header defined.
       </p>
       <p>
-        1. Paste the below snippet inside script tags in head of any web page{" "}
+        1. Paste the below snippet inside script tags in head of any enabled web page{" "}
         <br />
       </p>
       <CodeBlock code={PROFILER_CODE} />

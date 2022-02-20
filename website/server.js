@@ -29,7 +29,10 @@ app.prepare().then(() => {
     return res.end(data);
   });
 
-  server.get("*", (req, res) => handle(req, res));
+  server.get("*", (req, res) => {
+    res.header('Document-Policy', "js-profiling");
+    return handle(req, res);
+  });
 
   server.listen(port, err => {
     if (err) throw err;
